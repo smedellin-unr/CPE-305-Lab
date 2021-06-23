@@ -140,7 +140,7 @@ void loop() {
 
     case stop: {
       PORTB &= ~(1 << PB6);
-      Serial.write("No longer stopping!\n");
+      Serial.write("Idling...\n");
       NextStep = idle;
       in_char = nul;
       break;
@@ -151,9 +151,8 @@ void loop() {
         in_char = Serial.read();
       }
       if(in_char != q && in_char != nul){
-        Serial.write("No longer idle!\n");
+        Serial.write("Decoding...\n");
         NextStep = decode;
-        //in_char = nul;
         break;
       }
       in_char = nul;
@@ -162,14 +161,16 @@ void loop() {
 
     case decode: {
 
+      uint16_t last_correct_ticks = ticks;
       ticks = decodeTicks(in_char);
       if(ticks == incorrect_key_stroke) {
         Serial.write("[Err] Incorrect Key Stroke!\n");
-        NextStep = idle;
+        ticks = last_correct_ticks;
+        NextStep = play;
         in_char = nul;
         break;
       }
-      Serial.write("No longer decoding!\n");
+      Serial.write("Playing...\n");
       NextStep = play;
       in_char = nul;
       break;
@@ -188,16 +189,16 @@ void loop() {
       }
 
       if(in_char == q) {
-        Serial.write("No longer playing!\n");
+        Serial.write("Stopping...\n");
         NextStep = stop;
         in_char = nul;
         break;
       }
       else if(in_char != 0) {
+        Serial.write("Decoding...\n");  
         NextStep = decode;
         break;
       }
-      //in_char = nul;
       break;
     }
   }
