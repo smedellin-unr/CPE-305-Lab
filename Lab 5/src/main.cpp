@@ -43,18 +43,18 @@ volatile uint16_t ticks;
 
 // lookup table of Period in microseconds
 double frequency_selection[] = {
-  2272.727273,                    // 440 Hz A
-  2145.922747,                    // 466 Hz A#
-  2024.291498,                    // 494 Hz B
-  1912.045889,                    // 523 Hz C
-  1805.054152,                    // 554 Hz C#
-  1703.577513,                    // 587 Hz D
-  1602.564103,                    // 624 Hz D#
-  1517.450683,                    // 659 Hz E
-  1432.664756,                    // 698 Hz F
-  1351.351351,                    // 740 Hz F#
-  1275.510204,                    // 784 Hz G
-  1203.369434,                    // 831 Hz G#
+  2262.727273,                    // 440 Hz A
+  2135.922747,                    // 466 Hz A#
+  2014.291498,                    // 494 Hz B
+  1902.045889,                    // 523 Hz C
+  1795.054152,                    // 554 Hz C#
+  1693.577513,                    // 587 Hz D
+  1592.564103,                    // 624 Hz D#
+  1507.450683,                    // 659 Hz E
+  1422.664756,                    // 698 Hz F
+  1341.351351,                    // 740 Hz F#
+  1265.510204,                    // 784 Hz G
+  1193.369434,                    // 831 Hz G#
 };
 
 void delay_(uint16_t ticks) {
@@ -96,7 +96,22 @@ uint16_t decodeTicks(uint8_t KeyStroke) {
     case G: {
       return ((frequency_selection[10]/systick)/2);// 784 Hz
     }
-    case nul: {
+    case a: {
+      return ((frequency_selection[1]/systick)/2); // 440 Hz
+    }
+    case c: {
+      return ((frequency_selection[4]/systick)/2); // 440 Hz
+    }
+    case d: {
+      return ((frequency_selection[6]/systick)/2); // 440 Hz
+    }
+    case f: {
+      return ((frequency_selection[9]/systick)/2); // 440 Hz
+    }
+    case g: {
+      return ((frequency_selection[11]/systick)/2); // 440 Hz
+    }
+    case nul: {                                     // null value when not typing. Ignore
       break;
     }
     default: {
@@ -105,8 +120,6 @@ uint16_t decodeTicks(uint8_t KeyStroke) {
   }
   
 }
-
-
 
 void setup() 
 {
@@ -123,18 +136,11 @@ void loop() {
 
   Step = NextStep;
 
-  /// if the UART received a character
-  
-  //if(Serial.available()) {
-  //  in_char = Serial.read();
-  //}
-  
-
   switch (Step) {
 
     case stop: {
       PORTB &= ~(1 << PB6);
-      Serial.write("No longer stopping!");
+      Serial.write("No longer stopping!\n");
       NextStep = idle;
       in_char = nul;
       break;
@@ -145,7 +151,7 @@ void loop() {
         in_char = Serial.read();
       }
       if(in_char != q && in_char != nul){
-        Serial.write("No longer idle!");
+        Serial.write("No longer idle!\n");
         NextStep = decode;
         //in_char = nul;
         break;
@@ -155,17 +161,19 @@ void loop() {
     }
 
     case decode: {
+
       ticks = decodeTicks(in_char);
       if(ticks == incorrect_key_stroke) {
-        Serial.write("[Err] Incorrect Key Stroke!");
+        Serial.write("[Err] Incorrect Key Stroke!\n");
         NextStep = idle;
         in_char = nul;
         break;
       }
-      Serial.write("No longer decoding!");
+      Serial.write("No longer decoding!\n");
       NextStep = play;
       in_char = nul;
       break;
+
     }
 
     case play: {
@@ -180,7 +188,7 @@ void loop() {
       }
 
       if(in_char == q) {
-        Serial.write("No longer playing!");
+        Serial.write("No longer playing!\n");
         NextStep = stop;
         in_char = nul;
         break;
@@ -189,7 +197,7 @@ void loop() {
         NextStep = decode;
         break;
       }
-      in_char = nul;
+      //in_char = nul;
       break;
     }
   }
