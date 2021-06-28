@@ -43,8 +43,7 @@ void loop()
   uint8_t counter = 0;
   // Transmit character one at a time over USART comms
   while(counter < MAX_CHAR_ARRAY_SIZE) {
-    U0putchar(hex[counter]);
-    counter += 1;
+    U0putchar(hex[counter++]);
   }
   // Transmit new line character at the end of the payload
   cs1 = '\n';
