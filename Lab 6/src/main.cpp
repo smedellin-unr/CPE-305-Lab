@@ -10,28 +10,10 @@
 
 #define RDA 0x80
 #define TBE 0x20
-
-// number -> ASCII
-#define zero 30
-#define one 31
-#define two 32
-#define three 33
-#define four 34
-#define five 35
-#define six 36
-#define seven 37
-#define eight 38
-#define nine 39
-
-// letter -> ASCII
-#define a 97
-#define b 98
-#define c 99
-#define d 100
-
-
+#define MAX_CHAR_ARRAY_SIZE 4
 
 #define nul 0x00
+
 volatile unsigned char *myUCSR0A = (unsigned char *)0x00C0;
 volatile unsigned char *myUCSR0B = (unsigned char *)0x00C1;
 volatile unsigned char *myUCSR0C = (unsigned char *)0x00C2;
@@ -53,11 +35,20 @@ void setup()
 }
 void loop()
 {
-  //Serial.print();
   unsigned char cs1;
+  char hex[MAX_CHAR_ARRAY_SIZE] = {'0' ,'x'};
   while (U0kbhit()==0){}; // wait for RDA = true
   cs1 = U0getchar();    // read character
-  U0putchar(cs1);     // echo character
+  itoa(cs1, hex + 2, 16); // write the integer to ACII string conversion to the char array with offset of 2
+  uint8_t counter = 0;
+  // Transmit character one at a time over USART comms
+  while(counter < MAX_CHAR_ARRAY_SIZE) {
+    U0putchar(hex[counter]);
+    counter += 1;
+  }
+  // Transmit new line character at the end of the payload
+  cs1 = '\n';
+  U0putchar(cs1);
 }
 //
 // function to initialize USART0 to "int" Baud, 8 data bits,
@@ -105,4 +96,3 @@ void U0putchar(unsigned char U0pdata)
   while(!(UCSR0A & TBE));
   *myUDR0 = U0pdata;
 }
-
