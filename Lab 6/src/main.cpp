@@ -64,9 +64,9 @@ void U0init(unsigned long U0baud)
  unsigned int tbaud;
  tbaud = (FCPU / 16 / U0baud - 1);
  // Same as (FCPU / (16 * U0baud)) - 1;
- *myUCSR0A = 0x20; // 0b00100000
- *myUCSR0B = 0x18; // 0b00011000
- *myUCSR0C = 0x06; // 0b00000110
+ *myUCSR0A = 0x20; // 0b00100000  <- This sets the Data Register Empty to override any data in URD0 (effectively clearing it)
+ *myUCSR0B = 0x18; // 0b00011000  <- These enable receive and transmit
+ *myUCSR0C = 0x06; // 0b00000110  <- Sets an 8 bit Character size for receive and transmission
  *myUBRR0  = tbaud;
 }
 //
