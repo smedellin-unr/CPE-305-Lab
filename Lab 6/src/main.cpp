@@ -1,10 +1,8 @@
+
 //
-// Program to echo serial input characters from
-// Putty keyboard back to Putty display.
-// This version uses proper pointers.
-//
-//Written by D. Egbert, Version 1.5, 04/03/2017
-//
+//Written by Scott Medellin
+//6-28-2021
+//version 1.0
 #include <Arduino.h>
 #include <stdlib.h>
 
