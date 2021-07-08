@@ -5,6 +5,9 @@
  * This program counts the presses of a button and displays the counts on
  * a 7-segment display (displays 0 thru F). The counter variable is also stored and read back from
  * EEPROM memory at boot time. 
+ * 
+ * Modified by Scott Medellin
+ * Date: 7/7/2021
  */
 
 #include <Arduino.h>
