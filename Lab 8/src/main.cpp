@@ -1,3 +1,9 @@
+/*
+* Author: Scott Medellin
+* Date: 7/15/2021
+* Lab 8
+*/
+
 #include <Arduino.h>
 
 #define MAX_BITS_IN_REGISTER 8
@@ -23,7 +29,7 @@ uint16_t adc_read(uint8_t adc_channel) {
   // Start sample
   ADCSRA |= (1 << ADSC);
   // Wait till sampling complete
-  while(ADCSRA & (1 << ADIF) == 0);
+  while(ADCSRA & (1 << ADIF == 0));
   // return ADC result
   return ADCH;
 }
@@ -32,14 +38,20 @@ uint16_t adc_read(uint8_t adc_channel) {
 volatile uint8_t result = 0;
 
 void setup() {
+  // Initialize ADC
   adc_init();
   // Set PB7 (GPIO pin 13) as output
   DDRB |= (1 << PB7);
-
+  // Initialize Serial Port Output
+  Serial.begin(9600);
 }
 
 void loop() {
   result = adc_read(AI_PORT0);
+
   if(result < THRESHOLD) PORTB |= (1 << PORTB7);
   else PORTB &= ~(1 << PORTB7);
+  
+  Serial.print(result);
+  Serial.print('\n');
 }
