@@ -40,6 +40,8 @@ volatile uint16_t Step;
 volatile uint16_t NextStep = idle;
 volatile uint8_t in_char = nul;
 volatile uint16_t ticks;
+volatile bool init_prog = true;
+volatile bool error = false;
 
 // lookup table of Period in microseconds
 double frequency_selection[] = {
@@ -133,73 +135,28 @@ void setup()
 }
 
 void loop() {
-
-  Step = NextStep;
-
-  switch (Step) {
-
-    case stop: {
+  
+  // receive character
+  if(Serial.available()) {
+    in_char = Serial.read();
+  }
+  //Serial.println(in_char);
+  // decide on quiet conditions
+  if (in_char == q) {
       PORTB &= ~(1 << PB6);
-      Serial.write("Idling...\n");
-      NextStep = idle;
-      in_char = nul;
-      break;
+  }
+  else if (in_char != nul && in_char != q) {
+    // decode ticks
+    ticks = decodeTicks(in_char);
+    if (ticks == incorrect_key_stroke) {
+      Serial.println("Incorrect keystroke.");
+      delay(1000);
     }
-
-    case idle: {
-      if(Serial.available()) {
-        in_char = Serial.read();
-      }
-      if(in_char != q && in_char != nul){
-        Serial.write("Decoding...\n");
-        NextStep = decode;
-        break;
-      }
-      in_char = nul;
-      break;
-    }
-
-    case decode: {
-
-      uint16_t last_correct_ticks = ticks;
-      ticks = decodeTicks(in_char);
-      if(ticks == incorrect_key_stroke) {
-        Serial.write("[Err] Incorrect Key Stroke!\n");
-        ticks = last_correct_ticks;
-        NextStep = play;
-        in_char = nul;
-        break;
-      }
-      Serial.write("Playing...\n");
-      NextStep = play;
-      in_char = nul;
-      break;
-
-    }
-
-    case play: {
-      // Produce Square wave
+    else {
       PORTB |= (1 << PB6);
       delay_(ticks);
       PORTB &= ~(1 << PB6);
       delay_(ticks);
-
-      if(Serial.available()) {
-        in_char = Serial.read();
-      }
-
-      if(in_char == q) {
-        Serial.write("Stopping...\n");
-        NextStep = stop;
-        in_char = nul;
-        break;
-      }
-      else if(in_char != 0) {
-        Serial.write("Decoding...\n");  
-        NextStep = decode;
-        break;
-      }
-      break;
     }
   }
 }
