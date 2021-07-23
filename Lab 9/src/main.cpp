@@ -49,7 +49,7 @@ volatile unsigned char *myUDR0   = (unsigned char *)0x00C6;
 volatile uint16_t Step;
 volatile uint16_t NextStep = idle;
 volatile uint8_t in_char = nul;
-volatile uint16_t ticks = 17000;
+volatile uint16_t ticks = 0;
 volatile bool init_prog = true;
 volatile bool error = false;
 volatile uint8_t last_char = nul;
@@ -127,18 +127,17 @@ unsigned char U0getchar();
 void U0putchar(unsigned char U0pdata);
 
 ISR(TIMER1_OVF_vect) {
-  TCNT1 = ticks;
+  TCNT1 = (uint16_t) (65535 - ticks);
   PORTB ^= (1 << PB6);  
 }
 
 
 void setup() 
 {
-  // Clear TCCR1A and TCCR1B register
+  // Clear TCCR1A register
   TCCR1A = 0x00;
-  TCCR1B = 0x00;
-  // enable timer1 overflow interrupt
-  TIMSK1 |= (1 << TOIE1);
+  // Start timer 1 with prescalar of 1
+  TCCR1B = 0x01;
   // Enable interrupts
   sei();
   // Setting PB-6 as output
@@ -150,27 +149,24 @@ void setup()
 }
 
 void loop() {
-  /*
-  if(Serial.available()) {
-    in_char = Serial.read();
-  }
-  */
   // receive character
-  char hex[MAX_CHAR_ARRAY_SIZE] = {'0' ,'x'};
-  while (U0kbhit()==0){}; // wait for RDA = true
-  in_char = U0getchar();    // read character
-  itoa(in_char, hex + 2, 16); // write the integer to ACII string conversion to the char array with offset of 2
-  last_char = in_char;
+  if ( !U0kbhit==0) {
+    char hex[MAX_CHAR_ARRAY_SIZE] = {'0' ,'x'};
+    while (U0kbhit()==0){}; // wait for RDA = true
+    in_char = U0getchar();    // read character
+    itoa(in_char, hex + 2, 16); // write the integer to ACII string conversion to the char array with offset of 2
+    last_char = in_char;
+  }
   if (in_char == q) {
       TIMSK1 &= ~(1 << TOIE1);
-      PORTB &= ~(1 << PB6);
   }
   else if (in_char != nul && in_char != q) {
     // decode ticks
     ticks = decodeTicks(in_char);
     if (ticks == incorrect_key_stroke) {
       Serial.println("Incorrect keystroke.");
-      delay(1000);
+      TIMSK1 &= ~(1 << TOIE1);
+      delay(500);
     }
     else {
       TIMSK1 = (1 << TOIE1);
